@@ -32,7 +32,7 @@ void debugList(List *list)
         }
         else if (current->next == NULL)
         {
-            printf("Reached end of list");
+            printf("Reached end of list\n");
         }
         else
         {
@@ -109,11 +109,25 @@ bool deleteElement(List list, const char *deleteText)
 
 void printAppointment(Appointment p)
 {
-}
-
-void printList(List list, int day, int month, int year)
-{
 }*/
+
+void printList(List *list, int day, int month, int year)
+{
+    printf("Appointments on %d-%02d-%02d:\n", year, month, day);
+    Element *current = list->head->next;
+    while (current->next != list->tail)
+    {
+        time_t start_time = current->appointment->start;
+        struct tm *start_tm = localtime(&start_time);
+        if ((start_tm->tm_mday == day && start_tm->tm_mon + 1 == month && start_tm->tm_year + 1900 == year) || (day == 0 && month == 0 && year == 0))
+        {
+            char buff[20];
+            strftime(buff, 20, "%Y-%m-%d %H:%M:%S", start_tm);
+            printf("%s:\n\t\"%s\"\n\n", buff, current->appointment->description);
+        }
+        current = current->next;
+    }
+}
 
 int main(void)
 {
@@ -125,4 +139,6 @@ int main(void)
     insertElement(test_list, 1452955793, "Old Event");
     insertElement(test_list, 1452955793, "Old Event 2");
     debugList(test_list);
+    printList(test_list, 0, 0, 0);
+    printList(test_list, 16, 0, 2016);
 }
