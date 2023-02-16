@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
-// #include <stdbool.h>
+#include <stdbool.h>
 
 typedef struct
 {
@@ -59,9 +59,22 @@ List *createList()
     return list;
 }
 
-/*void clearList(List list)
+/*void clearList(List *list)
 {
-         
+    // Set the current pointer to the first element of the list
+    Appointment* current = list->head->next;
+
+    // Iterate over the list and free each node
+    while (current != list->tail) {
+        Appointment* temp = current;
+        current = current->next;
+        free(temp->text);
+        free(temp);
+    }
+
+    // Reset the head and tail pointers to their initial values
+    list->head->next = list->tail;
+    list->tail->prev = list->head;
 }*/
 
 void insertElement(List *list, time_t time, const char *text)
@@ -100,16 +113,40 @@ void insertElement(List *list, time_t time, const char *text)
 
 /*void findElement(List list, const char *searchText)
 {
-}
-
-bool deleteElement(List list, const char *deleteText)
-{
-    return false;
-}
-
-void printAppointment(Appointment p)
-{
 }*/
+
+bool deleteElement(List *list, const char *deleteText)
+{
+    Element *previous = list->head;
+    Element *current = previous->next;
+
+    while (current->next != list->tail && strcmp(current->appointment->description, deleteText) != 0)
+    {
+        previous = current;
+        current = current->next;
+    }
+
+    if (current->next != list->tail)
+    {
+        previous->next = current->next;
+        free(current->appointment->description);
+        free(current->appointment);
+        free(current);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void printAppointment(Appointment *appointment)
+{
+    char buff[20];
+    time_t start_time = appointment->start;
+    strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&start_time));
+    printf("%s: %s\n", buff, appointment->description);
+}
 
 void printList(List *list, int day, int month, int year)
 {
@@ -138,7 +175,18 @@ int main(void)
     insertElement(test_list, 1673880593, "Fourth Element");
     insertElement(test_list, 1452955793, "Old Event");
     insertElement(test_list, 1452955793, "Old Event 2");
-    debugList(test_list);
+    insertElement(test_list, 1452955791, "First Element");
+
+    // debugList(test_list);
     printList(test_list, 0, 0, 0);
-    printList(test_list, 16, 0, 2016);
+    // printList(test_list, 16, 0, 2016);
+    // printList(test_list, 14, 2, 2023);
+    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "First Element"));
+    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "First Element"));
+    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "First Element"));
+    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "Second Element"));
+
+    printList(test_list, 0, 0, 0);
+
+    printAppointment(test_list->head->next->next->appointment);
 }
