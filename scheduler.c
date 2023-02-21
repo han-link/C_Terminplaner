@@ -109,10 +109,24 @@ void insertElement(List *list, time_t time, const char *text)
     }
 }
 
-
-/*void findElement(List list, const char *searchText)
+Element* findElement(List *list, const char *searchText)
 {
-}*/
+    Element *current = list->head->next;
+
+    while (current != list->tail)
+    {
+        if(strcmp(current->appointment->description, searchText) == 0)
+        {
+            return current;
+        }
+        else
+        {
+            current = current->next;
+        }
+    }
+    return NULL;
+}
+
 
 bool deleteElement(List *list, const char *deleteText)
 {
@@ -175,6 +189,16 @@ int main(void)
     insertElement(test_list, 1452955793, "Old Event");
     insertElement(test_list, 1452955793, "Old Event 2");
     insertElement(test_list, 1452955791, "First Element");
-    clearList(test_list);
-    printList(test_list, 0, 0, 0);
+    insertElement(test_list, 1676973556, "Last Element of today");
+    // clearList(test_list);
+    // printList(test_list, 0, 0, 0);
+    Element *pt = findElement(test_list,"Old Event 2");
+    if(pt != NULL)
+    {
+        printAppointment(pt->appointment);
+    }
+    else
+    {
+        printf("No matching appointment found");
+    }
 }
