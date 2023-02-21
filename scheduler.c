@@ -47,7 +47,7 @@ void debugList(List *list)
 }
 
 // Function to create a new list of appointments
-List *createList()
+List *createList(void)
 {
     List *list = malloc(sizeof(List));
     list->head = malloc(sizeof(Element));
@@ -59,23 +59,22 @@ List *createList()
     return list;
 }
 
-/*void clearList(List *list)
+void clearList(List *list)
 {
     // Set the current pointer to the first element of the list
-    Appointment* current = list->head->next;
+    Element *current = list->head->next;
 
     // Iterate over the list and free each node
     while (current != list->tail) {
-        Appointment* temp = current;
+        Element *temp = current;
         current = current->next;
-        free(temp->text);
+        free(temp->appointment->description);
         free(temp);
     }
 
     // Reset the head and tail pointers to their initial values
     list->head->next = list->tail;
-    list->tail->prev = list->head;
-}*/
+}
 
 void insertElement(List *list, time_t time, const char *text)
 {
@@ -176,17 +175,6 @@ int main(void)
     insertElement(test_list, 1452955793, "Old Event");
     insertElement(test_list, 1452955793, "Old Event 2");
     insertElement(test_list, 1452955791, "First Element");
-
-    // debugList(test_list);
+    clearList(test_list);
     printList(test_list, 0, 0, 0);
-    // printList(test_list, 16, 0, 2016);
-    // printList(test_list, 14, 2, 2023);
-    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "First Element"));
-    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "First Element"));
-    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "First Element"));
-    printf("Response of deleteElement(): %d\n", deleteElement(test_list, "Second Element"));
-
-    printList(test_list, 0, 0, 0);
-
-    printAppointment(test_list->head->next->next->appointment);
 }

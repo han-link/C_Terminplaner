@@ -54,3 +54,4 @@ dkms.conf
 # Custom
 CMakeLists.txt
 cmake-build-debug/*
+*.exe
