@@ -127,30 +127,28 @@ Element* findElement(List *list, const char *searchText)
     return NULL;
 }
 
-
 bool deleteElement(List *list, const char *deleteText)
 {
     Element *previous = list->head;
     Element *current = previous->next;
 
-    while (current->next != list->tail && strcmp(current->appointment->description, deleteText) != 0)
+    while (current->next != list->tail)
     {
-        previous = current;
-        current = current->next;
+        if(strcmp(current->appointment->description, deleteText) == 0)
+        {
+            previous->next = current->next;
+            free(current->appointment->description);
+            free(current->appointment);
+            free(current);
+            return true;
+        }
+        else
+        {
+            previous = current;
+            current = current->next;
+        }
     }
-
-    if (current->next != list->tail)
-    {
-        previous->next = current->next;
-        free(current->appointment->description);
-        free(current->appointment);
-        free(current);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    return false;
 }
 
 void printAppointment(Appointment *appointment)
@@ -191,14 +189,18 @@ int main(void)
     insertElement(test_list, 1452955791, "First Element");
     insertElement(test_list, 1676973556, "Last Element of today");
     // clearList(test_list);
-    // printList(test_list, 0, 0, 0);
-    Element *pt = findElement(test_list,"Old Event 2");
+    printList(test_list, 0, 0, 0);
+    /*Element *pt = findElement(test_list,"Old Event 6");
     if(pt != NULL)
     {
         printAppointment(pt->appointment);
     }
     else
     {
-        printf("No matching appointment found");
+        printf("No matching appointment found\n");
     }
+    clearList(test_list);
+    printList(test_list,0,0,0);*/
+    deleteElement(test_list,"Old Event 2");
+    printList(test_list,0,0,0);
 }
