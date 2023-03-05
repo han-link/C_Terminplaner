@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 
+
 typedef struct
 {
     time_t start;
@@ -21,32 +22,7 @@ typedef struct
     Element *head, *tail;
 } List;
 
-void debugList(List *list)
-{
-    Element *current = list->head->next;
-    while (current != NULL)
-    {
-        if (current->appointment == NULL)
-        {
-            printf("Error: Invalid appointment data\n");
-        }
-        else if (current->next == NULL)
-        {
-            printf("Reached end of list\n");
-        }
-        else
-        {
-            char buff[20];
-            time_t start_time = current->appointment->start;
-            strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&start_time));
-            printf("Appointment: %s\n", current->appointment->description);
-            printf("Start time: %s\n", buff);
-        }
-        current = current->next;
-    }
-}
 
-// Function to create a new list of appointments
 List *createList(void)
 {
     List *list = malloc(sizeof(List));
@@ -153,17 +129,17 @@ bool deleteElement(List *list, const char *deleteText)
 
 void printAppointment(Appointment *appointment)
 {
-    char buff[20];
-    time_t start_time = appointment->start;
-    strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&start_time));
-    printf("%s: %s\n", buff, appointment->description);
+    //char buff[20];
+    //time_t start_time = appointment->start;
+    //strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&start_time));
+    printf("Appointment:\nTime: %sDescription: %s\n", ctime(&appointment->start), appointment->description);
 }
 
 void printList(List *list, int day, int month, int year)
 {
-    printf("Appointments on %d-%02d-%02d:\n", year, month, day);
+    printf("\nAppointments on %d-%02d-%02d:\n", year, month, day);
     Element *current = list->head->next;
-    while (current->next != list->tail)
+    while (current != list->tail)
     {
         time_t start_time = current->appointment->start;
         struct tm *start_tm = localtime(&start_time);
@@ -177,6 +153,136 @@ void printList(List *list, int day, int month, int year)
     }
 }
 
+int readInt() {
+    char input[20];
+    fgets(input, 20, stdin);
+    int number = strtol(input, NULL, 10);
+    return number;
+}
+
+void menu(List *list) {
+    int option;
+    while (true)
+    {
+        printf("****************** MENU ******************\n");
+        printf("1. Show all appointments today\n");
+        printf("2. Show all appointments on a specific day\n");
+        printf("3. Show all appointments\n");
+        printf("4. Insert a appointment\n");
+        printf("5. Search for a appointment\n");
+        printf("6. Delete a appointment\n");
+        printf("7. Delete the list\n");
+        printf("8. Exit\n");
+        printf("Enter your choice:\n");
+        fflush(stdout);
+
+        option =  readInt();
+
+        switch (option)
+        {
+            case 1: // Show all appointments today
+            {
+                time_t current_time = time(NULL);
+                struct tm *now_tm = localtime(&current_time);
+                printList(list, now_tm->tm_mday, now_tm->tm_mon + 1, now_tm->tm_year + 1900);
+                break;
+            }
+            case 2: // Show all appointments on a specific day
+            {
+                int year, month, day;
+
+                printf("Enter the year YYYY: \n");
+                year = readInt();
+
+                printf("Enter the month mm: \n");\
+                month = readInt();
+                printf("Enter the day: \n");
+                day = readInt();
+
+                printList(list, day, month, year);
+                break;
+
+            }
+            case 3: // Show all appointments
+                printList(list, 0, 0, 0);
+                break;
+            case 4: // Insert a appointment
+            {
+                int year, month, day;
+                char appointment_description[256];
+                struct tm appointment_time = {0};
+
+                printf("Enter the month year YYYY: \n");\
+                year = readInt();
+                printf("Enter the month mm: \n");\
+                month = readInt();
+                printf("Enter the day dd: \n");
+                day = readInt();
+
+                appointment_time.tm_year = year - 1900;
+                appointment_time.tm_mon = month -1;
+                appointment_time.tm_mday = day;
+
+                printf("Enter appointment_description:\n");
+                fgets(appointment_description, 256, stdin);
+
+                // Remove newline character from input
+                appointment_description[strcspn(appointment_description, "\n")] = 0;
+
+                time_t appointment_timestamp = mktime(&appointment_time);
+
+                insertElement(list, appointment_timestamp, appointment_description);
+
+                printf("Appointment added successfully!\n");
+
+                break;
+            }
+            case 5: // Search for an appointment
+            {
+                char searchText[256];
+                printf("Enter appointment description:\n");
+                fgets(searchText, 256, stdin);
+                searchText[strcspn(searchText, "\n")] = 0;
+                Element *element = findElement(list, searchText);
+                if(element != NULL)
+                {
+                    printAppointment(element->appointment);
+                }
+                else
+                {
+                    printf("No matching appointment found\n");
+                }
+                break;
+            }
+            case 6: // Delete an appointment
+            {
+                char deleteText[256];
+                printf("Enter appointment description:\n");
+                fgets(deleteText, 256, stdin);
+                deleteText[strcspn(deleteText, "\n")] = 0;
+
+                if(deleteElement(list, deleteText) == true)
+                {
+                    printf("Element was deletd successfull");
+                }
+                else
+                {
+                    printf("No matching appointment found\n");
+                }
+                break;
+            }
+            case 7:// Delete the list
+                clearList(list);
+                break;
+            case 8: // Exit
+                exit(0);
+            default:
+                fprintf(stderr, "Error: This is no option in the menu\n");
+                fflush(stderr);
+        }
+    }
+}
+
 int main(void)
 {
     List *test_list = createList();
@@ -186,21 +292,14 @@ int main(void)
     insertElement(test_list, 1673880593, "Fourth Element");
     insertElement(test_list, 1452955793, "Old Event");
     insertElement(test_list, 1452955793, "Old Event 2");
-    insertElement(test_list, 1452955791, "First Element");
+    insertElement(test_list, 1452955791, "Another Element");
     insertElement(test_list, 1676973556, "Last Element of today");
-    // clearList(test_list);
-    printList(test_list, 0, 0, 0);
-    /*Element *pt = findElement(test_list,"Old Event 6");
-    if(pt != NULL)
-    {
-        printAppointment(pt->appointment);
-    }
-    else
-    {
-        printf("No matching appointment found\n");
-    }
-    clearList(test_list);
-    printList(test_list,0,0,0);*/
-    deleteElement(test_list,"Old Event 2");
-    printList(test_list,0,0,0);
+    insertElement(test_list, 1677607338, "Play some games");
+    insertElement(test_list, 1677662609, "Play more games");
+    insertElement(test_list, 1677662609, "Play more games");
+    // printList(test_list,0,0,0);
+
+    menu(test_list);
+
+    return 0;
 }
