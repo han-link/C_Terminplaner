@@ -3,5 +3,5 @@ Programmenturf für die Vorlesung Programmieren 1 im ersten Semester.
 
 Compiler Command
 ```bash
-gcc -o Scheduler.out  scheduler.c
+gcc -Wall -pedantic-errors -o Scheduler.out  scheduler.c
 ```
