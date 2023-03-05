@@ -128,15 +128,22 @@ bool deleteElement(List *list, const char *deleteText)
 
 void printAppointment(Appointment *appointment)
 {
-    //char buff[20];
-    //time_t start_time = appointment->start;
-    //strftime(buff, 20, "%Y-%m-%d %H:%M:%S", localtime(&start_time));
-    printf("Appointment:\nTime: %sDescription: %s\n", ctime(&appointment->start), appointment->description);
+    char buff[20];
+    time_t start_time = appointment->start;
+    strftime(buff, 20, "%Y-%m-%d", localtime(&start_time));
+    printf("Appointment:\n%s\n%s\n", buff, appointment->description);
 }
 
 void printList(List *list, int day, int month, int year)
 {
-    printf("\nAppointments on %d-%02d-%02d:\n", year, month, day);
+    if(day == 0 && month == 0 && year == 0)
+    {
+        printf("All Apponintments:\n");
+    }
+    else
+    {
+        printf("\nAppointments on %d-%02d-%02d:\n\n", year, month, day);
+    }
     Element *current = list->head->next;
     while (current != list->tail)
     {
@@ -145,8 +152,8 @@ void printList(List *list, int day, int month, int year)
         if ((start_tm->tm_mday == day && start_tm->tm_mon + 1 == month && start_tm->tm_year + 1900 == year) || (day == 0 && month == 0 && year == 0))
         {
             char buff[20];
-            strftime(buff, 20, "%Y-%m-%d %H:%M:%S", start_tm);
-            printf("%s:\n\t\"%s\"\n\n", buff, current->appointment->description);
+            strftime(buff, 20, "%Y-%m-%d", localtime(&start_time));
+            printf("%s:\n%s\n", buff, current->appointment->description);
         }
         current = current->next;
     }
@@ -159,6 +166,38 @@ int readInt() {
     return number;
 }
 
+void writeListToFile(List *list, const char *filename)
+{
+    FILE *file = fopen(filename, "w");
+    if (file == NULL)
+    {
+        printf("Error opening file for writing!\n");
+        return;
+    }
+
+    Element *current = list->head->next;
+    while (current != list->tail)
+    {
+        Appointment *appointment = current->appointment;
+        fprintf(file, "%ld\n%s\n", (long)appointment->start, appointment->description);
+        current = current->next;
+    }
+
+    fclose(file);
+
+    // Free the memory of the list
+    current = list->head->next;
+    while (current != list->tail) {
+        Element *next = current->next;
+        free(current->appointment->description);
+        free(current->appointment);
+        free(current);
+        current = next;
+    }
+    free(list->head);
+    free(list->tail);
+}
+
 time_t unix_time_to_time_t(const char* unix_time_str)
 {
     // Convert string to long integer
@@ -169,7 +208,8 @@ time_t unix_time_to_time_t(const char* unix_time_str)
 
     return time;
 }
-void menu(List *list) {
+
+void menu(List *list, char* filename) {
     int option;
     while (true)
     {
@@ -240,7 +280,7 @@ void menu(List *list) {
 
                 time_t appointment_timestamp = mktime(&appointment_time);
 
-                insertElement(list, appointment_timestamp, appointment_description);
+                insertElement(list, appointment_timestamp + 43200, appointment_description);
 
                 printf("Appointment added successfully!\n");
 
@@ -272,7 +312,7 @@ void menu(List *list) {
 
                 if(deleteElement(list, deleteText) == true)
                 {
-                    printf("Element was deletd successfull");
+                    printf("Element was deleted successfull\n");
                 }
                 else
                 {
@@ -284,6 +324,7 @@ void menu(List *list) {
                 clearList(list);
                 break;
             case 8: // Exit
+                writeListToFile(list,filename);
                 exit(0);
             default:
                 fprintf(stderr, "Error: This is no option in the menu\n");
@@ -292,25 +333,38 @@ void menu(List *list) {
     }
 }
 
+time_t start_of_day() {
+    time_t t = time(NULL);
+    struct tm* tm = localtime(&t);
+    tm->tm_hour = 0;
+    tm->tm_min = 0;
+    tm->tm_sec = 0;
+    return mktime(tm);
+}
+
 int main(void)
 {
     FILE *textFile;
     char filename[256];
+    const char DEFAULT_FILENAME[256] = "termine.txt";
     List *appointment_list = createList();
 
     printf("Enter filename or just hit enter for default name:\n");
+
     fgets(filename, 256, stdin);
 
-    if (filename[0] == '\n')
-    {
-        strcpy(filename, "termine.txt");
-    }
-    else
+    if(strlen(filename) > 1)
     {
         filename[strcspn(filename, "\n")] = 0;
     }
+    else
+    {
+        strcpy(filename, DEFAULT_FILENAME);
+    }
 
+    printf("Filname: %s\n", filename);
     textFile = fopen(filename, "r");
+
 
     if (textFile != NULL)
     {
@@ -318,16 +372,25 @@ int main(void)
 
         while (fgets(time_str, 256, textFile) && fgets(description_str, 256, textFile))
         {
-            insertElement(appointment_list,unix_time_to_time_t(time_str),description_str);
+            time_t today = start_of_day();
+            time_t appointmentStart = unix_time_to_time_t(time_str);
+            if(appointmentStart > today)
+            {
+                description_str[strcspn(description_str, "\n")] = 0;
+                insertElement(appointment_list,appointmentStart,description_str);
+            }
         }
         printf("File was read\n");
+        fclose(textFile);
     }
     else
     {
         printf("failed to open the file\n");
     }
-    fclose(textFile);
-    menu(appointment_list);
+    time_t current_time = time(NULL);
+    struct tm *now_tm = localtime(&current_time);
+    printList(appointment_list, now_tm->tm_mday, now_tm->tm_mon + 1, now_tm->tm_year + 1900);
+    menu(appointment_list, filename);
 
     return 0;
 }
