@@ -90,6 +90,7 @@ Element* findElement(List *list, const char *searchText)
 
     while (current != list->tail)
     {
+        // Compare the description with the searchText
         if(strcmp(current->appointment->description, searchText) == 0)
         {
             return current;
@@ -104,6 +105,7 @@ Element* findElement(List *list, const char *searchText)
 
 bool deleteElement(List *list, const char *deleteText)
 {
+    // store the previous element because element->next need to be defined new
     Element *previous = list->head;
     Element *current = previous->next;
 
@@ -111,6 +113,7 @@ bool deleteElement(List *list, const char *deleteText)
     {
         if(strcmp(current->appointment->description, deleteText) == 0)
         {
+            // Connect perviouse with next element
             previous->next = current->next;
             free(current->appointment->description);
             free(current->appointment);
@@ -169,11 +172,6 @@ int readInt() {
 void writeListToFile(List *list, const char *filename)
 {
     FILE *file = fopen(filename, "w");
-    if (file == NULL)
-    {
-        printf("Error opening file for writing!\n");
-        return;
-    }
 
     Element *current = list->head->next;
     while (current != list->tail)
@@ -279,7 +277,7 @@ void menu(List *list, char* filename) {
                 appointment_description[strcspn(appointment_description, "\n")] = 0;
 
                 time_t appointment_timestamp = mktime(&appointment_time);
-
+                // Every element is inserted at 12:00:00
                 insertElement(list, appointment_timestamp + 43200, appointment_description);
 
                 printf("Appointment added successfully!\n");
