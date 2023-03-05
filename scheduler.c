@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-
 typedef struct
 {
     time_t start;
@@ -160,6 +159,16 @@ int readInt() {
     return number;
 }
 
+time_t unix_time_to_time_t(const char* unix_time_str)
+{
+    // Convert string to long integer
+    long unix_time = strtol(unix_time_str, NULL, 10);
+
+    // Create time_t object from Unix timestamp
+    time_t time = (time_t)unix_time;
+
+    return time;
+}
 void menu(List *list) {
     int option;
     while (true)
@@ -285,21 +294,40 @@ void menu(List *list) {
 
 int main(void)
 {
-    List *test_list = createList();
-    insertElement(test_list, 1676363073, "First Element");
-    insertElement(test_list, 1676363114, "Second Element");
-    insertElement(test_list, 1676363165, "Third Element");
-    insertElement(test_list, 1673880593, "Fourth Element");
-    insertElement(test_list, 1452955793, "Old Event");
-    insertElement(test_list, 1452955793, "Old Event 2");
-    insertElement(test_list, 1452955791, "Another Element");
-    insertElement(test_list, 1676973556, "Last Element of today");
-    insertElement(test_list, 1677607338, "Play some games");
-    insertElement(test_list, 1677662609, "Play more games");
-    insertElement(test_list, 1677662609, "Play more games");
-    // printList(test_list,0,0,0);
+    FILE *textFile;
+    char filename[256];
+    List *appointment_list = createList();
 
-    menu(test_list);
+    printf("Enter filename or just hit enter for default name:\n");
+    fgets(filename, 256, stdin);
+
+    if (filename[0] == '\n')
+    {
+        strcpy(filename, "termine.txt");
+    }
+    else
+    {
+        filename[strcspn(filename, "\n")] = 0;
+    }
+
+    textFile = fopen(filename, "r");
+
+    if (textFile != NULL)
+    {
+        char time_str[256], description_str[256];
+
+        while (fgets(time_str, 256, textFile) && fgets(description_str, 256, textFile))
+        {
+            insertElement(appointment_list,unix_time_to_time_t(time_str),description_str);
+        }
+        printf("File was read\n");
+    }
+    else
+    {
+        printf("failed to open the file\n");
+    }
+    fclose(textFile);
+    menu(appointment_list);
 
     return 0;
 }
