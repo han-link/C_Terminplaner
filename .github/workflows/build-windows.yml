@@ -14,7 +14,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Install MinGW (Cross-Compiler for Windows)
       run: sudo apt-get install -y mingw-w64
@@ -23,7 +23,7 @@ jobs:
       run: x86_64-w64-mingw32-gcc -Wall -pedantic-errors -o scheduler.exe scheduler.c
 
     - name: Upload binary as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: scheduler-windows-executable
         path: ./scheduler.exe
