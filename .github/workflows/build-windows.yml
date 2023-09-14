@@ -1,0 +1,29 @@
+name: Compile and Save as Artifact
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-windows:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install MinGW (Cross-Compiler for Windows)
+      run: sudo apt-get install -y mingw-w64
+
+    - name: Cross-Compile for Windows
+      run: x86_64-w64-mingw32-gcc -Wall -pedantic-errors -o scheduler.exe scheduler.c
+
+    - name: Upload binary as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: scheduler-windows-executable
+        path: ./scheduler.exe
