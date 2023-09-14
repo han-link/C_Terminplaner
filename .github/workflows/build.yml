@@ -22,5 +22,5 @@ jobs:
     - name: Upload binary as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: scheduler.out
+        name: scheduler-executable
         path: ./scheduler.out
