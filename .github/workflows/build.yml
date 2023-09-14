@@ -14,13 +14,13 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Compile
       run: gcc -Wall -pedantic-errors -o scheduler.out scheduler.c
 
     - name: Upload binary as artifact
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: scheduler.out
         path: ./scheduler.out
